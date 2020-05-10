@@ -33,10 +33,10 @@ int control = 250;          //PWM
 
 int Left_motor_back = 4;     //(IN1)
 int Left_motor_go = 5;       //(IN2)
-int Left_motor_en = 3;       //(ENA)
+int Left_motor_en = 3;       //(EN1)
 int Right_motor_go = 6;      //(IN3)
 int Right_motor_back = 7;    //(IN4)
-int Right_motor_en = 8;      //(ENB)
+int Right_motor_en = 8;      //(EN2)
 
 int incomingByte = 0;       //data byte
 String inputString = "";
@@ -507,11 +507,13 @@ void loop()
 
   if (g_modeComunication == 0)
   {
-    IR_Deal();
+//    IR_Deal(); //original
+    Bluetooth();
   }
   else
   {
-    Bluetooth(); // have to try swap ir_deal and bt
+//    Bluetooth(); //original
+    IR_Deal();    
   }
 
   if (g_AllState == 0)
