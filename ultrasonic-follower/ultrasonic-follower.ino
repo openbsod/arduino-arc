@@ -9,16 +9,16 @@ int Right_motor_back = 3;    //(IN4)
 #define TRIG 12
 #define ECHO 13
 
-#define DESIRED_DISTANCE 10
+#define DESIRED_DISTANCE 14
 #define DISTANCE_TOLERANCE 1
-#define MAX_DISTANCE 10
+#define MAX_DISTANCE 15
 #define MAX_SPEED  255
 float distance = 0.0;
-int speed = 0;
+int speed = 200;
 
 // coefficient for speed calculation
-float k = 2.0;
-float error = 0.0;
+float k = 2.5;
+float error = 0.5;
 
 void setup() 
 {
@@ -64,8 +64,8 @@ void loop()
     // convert error to motor speed
     // map is abs(error)*k)
     // from 0 to MAX_DISTANCE) 
-    // and from 0 to MAX_SPEED)
-    speed = map(abs(error)*k, 0, MAX_DISTANCE, 0, MAX_SPEED);
+    // or from 0 to MAX_SPEED)
+    // speed = map(abs(error)*k, 0, MAX_DISTANCE, 0, MAX_SPEED);
   }
   else
   {
@@ -81,7 +81,7 @@ void forward()
 
   digitalWrite(Left_motor_go, HIGH);
   digitalWrite(Left_motor_back, LOW);
-  analogWrite(Left_motor_go, speed);
+  analogWrite(Left_motor_go, speed + 25);
 }
 
 void brake()
@@ -100,5 +100,5 @@ void back()
 
   digitalWrite(Left_motor_go, LOW);
   digitalWrite(Left_motor_back, HIGH);
-  analogWrite(Left_motor_back, speed);
+  analogWrite(Left_motor_back, speed - 25);
 }
