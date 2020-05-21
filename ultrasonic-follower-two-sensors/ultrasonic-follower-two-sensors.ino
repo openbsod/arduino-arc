@@ -1,9 +1,15 @@
-int Left_motor_back = 6;                       //(IN1)
-int Left_motor_go = 5;                         //(IN2)
-//int Left_motor_en = 3;                       //(EN1)
-int Right_motor_go = 2;                        //(IN3)
-int Right_motor_back = 3;                      //(IN4)
-//int Right_motor_en = 11;                     //(EN2)
+#include <Servo.h>
+
+int Left_motor_back = 8;                       //(IN1)
+int Left_motor_go = 9;                         //(IN2)
+int Left_motor_en = 10;                       //(EN1)
+int Right_motor_go = 6;                        //(IN3)
+int Right_motor_back = 7;                      //(IN4)
+int Right_motor_en = 5;                     //(EN2)
+
+Servo myservo;
+int servo = 3;     //sets servo @pin 3
+int angle = 90;
 
 double Input; // to calculate the Error(E) of PID controller with parameter of distance
 double Output ; //the parameter which set the speed of motors
@@ -12,14 +18,15 @@ double Output ; //the parameter which set the speed of motors
 double Kp = 14 ; //constant of proportion 
 double Ki = 0.0 ;//constant of integrity, Kp*Ti(the time constant)
 double Kd = 0.4; //constant of differential, Kp*Td(the time constant) 
-const int Setpoint = 5;// the supposed distance between the robot car and the object
+const int Setpoint = 7;// the supposed distance between the robot car and the object
 double ki,kd;
+
  
 //Pin Setup
-const int TrigPinR = 13; //the left ultrasonic trig 
-const int EchoPinR = 12;// the left ultrasonic echo
-const int TrigPinL = 10;//the right ultrasonic trig
-const int EchoPinL = 9;//the right ultrasonic echo
+const int TrigPinR = 34; //the left ultrasonic trig 
+const int EchoPinR = 36;// the left ultrasonic echo
+const int TrigPinL = 38;//the right ultrasonic trig
+const int EchoPinL = 40;//the right ultrasonic echo
 
 //variable
 //lastInput and lastTime is the variable for the data of input and time before the current one.
@@ -50,15 +57,20 @@ void TurnLeft();
  
 void setup()
 {
-  Serial.begin(9600);   
+//  Serial.begin(9600);   
   pinMode(TrigPinL, OUTPUT);
   pinMode(EchoPinL, INPUT);
   pinMode(TrigPinR, OUTPUT);
   pinMode(EchoPinR, INPUT);
+
+  myservo.attach(3);
+    
   pinMode(Left_motor_go,    OUTPUT);           // PIN 5 (PWM)
   pinMode(Left_motor_back,  OUTPUT);           // PIN 6 (PWM)
   pinMode(Right_motor_go,   OUTPUT);           // PIN 2 (PWM)
-  pinMode(Right_motor_back, OUTPUT);           // PIN 3 (PWM)  
+  pinMode(Right_motor_back, OUTPUT);           // PIN 3 (PWM) 
+  pinMode(Right_motor_en,    OUTPUT);
+  pinMode(Left_motor_en,    OUTPUT); 
 }
 
 void loop()
@@ -69,13 +81,40 @@ void loop()
   //if the distance detected by two ultrasonic sensor is different significantly, which means
   //the object is not in front of the robot car, the car need to turn either right or left.
   //and here, 50 is a threshold
-  if (distanceL-distanceR >40)
+  if (distanceL-distanceR >25)
   {
-   left();
+   //left();
+   angle = angle + 2;
+   //myservo.write(angle);
+   if (angle > 110)
+  {
+    angle = 110;
   }
-  else if (distanceR-distanceL >40)
+  if (angle < 70)
   {
-   right();   
+    angle = 70;
+  }
+  myservo.write(angle);
+  run();
+  //delay(10);
+  }
+  else if (distanceR-distanceL >25)
+  {
+   //right();
+   run();
+   angle = angle - 2;
+   //myservo.write(angle);
+   if (angle > 110)
+  {
+    angle = 110;
+  }
+  if (angle < 70)
+  {
+    angle = 70;
+  }
+  myservo.write(angle);
+  run();
+  //delay(10);
   }
   //besides turning, the robot car is gonna go in straight line
   else
@@ -100,8 +139,8 @@ void loop()
   if(dtime >= SampleTime)
   { 
     error = -Setpoint + Input;
-    Serial.print(error);
-    Serial.print("\n");
+//    Serial.print(error);
+//    Serial.print("\n");
     ITerm+=(ki *error);
     double dInput = (Input - lastInput);
     Output = Kp*error + ITerm - kd*dInput;
@@ -115,7 +154,7 @@ void loop()
   }
   
   //Write the output as calculated by the PID function
-   if (distance <= 5)
+   if (distance <= 6)
    {
     back();
    }
@@ -123,6 +162,7 @@ void loop()
    //as a result, we'd better to make it slower.
    else
    {
+    //myservo.write(90);
     run();
    }
    }
@@ -167,12 +207,12 @@ void run()
     //left motor go
   digitalWrite(Left_motor_go, HIGH);   //enable left motor go
   digitalWrite(Left_motor_back, LOW);  //prohibit left motro back
-  analogWrite(Left_motor_go, 250);
+  analogWrite(Left_motor_en, 250);
 
    //right motor go
   digitalWrite(Right_motor_go, HIGH);  //enable right motor go
   digitalWrite(Right_motor_back, LOW); //prohibit right motor back
-  analogWrite(Right_motor_go, 250);
+  analogWrite(Right_motor_en, 250);
 }
 
 void runSlow()
@@ -181,12 +221,12 @@ void runSlow()
     //left motor go
   digitalWrite(Left_motor_go, HIGH);   //enable left motor go
   digitalWrite(Left_motor_back, LOW);  //prohibit left motro back
-  analogWrite(Left_motor_go, 130);
+  analogWrite(Left_motor_en, 130);
 
    //right motor go
   digitalWrite(Right_motor_go, HIGH);  //enable right motor go
   digitalWrite(Right_motor_back, LOW); //prohibit right motor back
-  analogWrite(Right_motor_go, 130);
+  analogWrite(Right_motor_en, 130);
 }
 
 void left()
@@ -194,12 +234,12 @@ void left()
  //left motor stop
    digitalWrite(Left_motor_go, LOW);    //prohibit left motor go
   digitalWrite(Left_motor_back, LOW);  //prohibit left motor back
-  analogWrite(Left_motor_back, 0);
+  analogWrite(Left_motor_en, 0);
 
   //right motor go
   digitalWrite(Right_motor_go, HIGH);  //enable right motor go
   digitalWrite(Right_motor_back, LOW); //prohibit right motor back
-  analogWrite(Right_motor_go, 230);
+  analogWrite(Right_motor_en, 230);
 }
 
 void right()
@@ -207,42 +247,38 @@ void right()
   //left motor go
   digitalWrite(Left_motor_go, HIGH);   //enable left motor go
   digitalWrite(Left_motor_back, LOW);  //prohibit left motor back
-  analogWrite(Left_motor_go, 230);
+  analogWrite(Left_motor_en, 230);
 
   //right motor stop
   digitalWrite(Right_motor_go, LOW);   //prohibit right motor go
   digitalWrite(Right_motor_back, LOW); //prohibit right motor back
-  analogWrite(Right_motor_go, 0);
+  analogWrite(Right_motor_en, 0);
 }
 
-void spin_left(int time)
+void spin_left()
 {
   //left motor back
   digitalWrite(Left_motor_go, LOW);     //prohibit left motor go
   digitalWrite(Left_motor_back, HIGH);  //enable left motor back
-  analogWrite(Left_motor_back, 230);
+  analogWrite(Left_motor_en, 230);
 
   //right motor go
   digitalWrite(Right_motor_go, HIGH);  //enable right motor go
   digitalWrite(Right_motor_back, LOW); //prohibit right motor back
-  analogWrite(Right_motor_go, 230);
-
-  delay(time * 100);
+  analogWrite(Right_motor_en, 230);
 }
 
-void spin_right(int time)
+void spin_right()
 {
  //left motor go
   digitalWrite(Left_motor_go, HIGH);    //enable left motor go
   digitalWrite(Left_motor_back, LOW);   //prohibit left motor back
-  analogWrite(Left_motor_go, 230);
+  analogWrite(Left_motor_en, 230);
 
   //right motor back
   digitalWrite(Right_motor_go, LOW);    //prohibit right motor go
   digitalWrite(Right_motor_back, HIGH); //enable right motor back
-  analogWrite(Right_motor_back, 230);
-
-  delay(time * 100);
+  analogWrite(Right_motor_en, 230);
 }
 
 void back()
@@ -250,10 +286,78 @@ void back()
   //left motor back
   digitalWrite(Left_motor_go, LOW);     //prohibit left motor go
   digitalWrite(Left_motor_back, HIGH);  //enable lef tmotor back
-  analogWrite(Left_motor_back, 250);
+  analogWrite(Left_motor_en, 250);
 
   //right motor back
   digitalWrite(Right_motor_go, LOW);     //prohibit right motor go
   digitalWrite(Right_motor_back, HIGH);  //enable right motor back
-  analogWrite(Right_motor_back, 250);
+  analogWrite(Right_motor_en, 250);
 }
+/*void demoOne()
+{
+// this function will run the motors in both directions at a fixed speed
+// turn on motor A
+digitalWrite(in1, HIGH);
+digitalWrite(in2, LOW);
+// set speed to 200 out of possible range 0~255
+analogWrite(enA, 255);
+// turn on motor B
+digitalWrite(in3, HIGH);
+digitalWrite(in4, LOW);
+// set speed to 200 out of possible range 0~255
+analogWrite(enB, 255);
+delay(2000);
+*/
+/*// now change motor directions
+digitalWrite(in1, LOW);
+digitalWrite(in2, HIGH);
+digitalWrite(in3, LOW);
+digitalWrite(in4, HIGH);
+delay(2000);
+// now turn off motors
+digitalWrite(in1, LOW);
+digitalWrite(in2, LOW);
+digitalWrite(in3, LOW);
+digitalWrite(in4, LOW);
+}
+*/
+/*
+void demoTwo()
+{
+// this function will run the motors across the range of possible speeds
+// note that maximum speed is determined by the motor itself and the operating voltage
+// the PWM values sent by analogWrite() are fractions of the maximum speed possible
+// by your hardware
+
+// turn on motors forward
+digitalWrite(in1, HIGH);
+digitalWrite(in2, LOW);
+digitalWrite(in3, HIGH);
+digitalWrite(in4, LOW);
+// accelerate from zero to maximum speed
+for (int i = 0; i < 255; i++)
+{
+analogWrite(enA, i);
+analogWrite(enB, i);
+delay(20);
+}
+
+// turn on motors backward
+digitalWrite(in1, LOW);
+digitalWrite(in2, HIGH);
+digitalWrite(in3, LOW);
+digitalWrite(in4, HIGH);
+// decelerate from maximum speed to zero
+for (int i = 255; i >= 0; --i)
+{
+analogWrite(enA, i);
+analogWrite(enB, i);
+delay(20);
+}
+// now turn off motors
+digitalWrite(in1, LOW);
+digitalWrite(in2, LOW);
+digitalWrite(in3, LOW);
+digitalWrite(in4, LOW);
+}
+*/
