@@ -8,17 +8,17 @@ int Right_motor_back = 7;                      //(IN4)
 int Right_motor_en = 5;                     //(EN2)
 
 Servo myservo;
-int servo = 3;     //sets servo @pin 3
+int servo = 3;     // servo pin 3
 int angle = 90;
 
 double Input; // to calculate the Error(E) of PID controller with parameter of distance
 double Output ; //the parameter which set the speed of motors
 
 //PID parameters          
-double Kp = 14 ; //constant of proportion 
+double Kp = 4 ; //constant of proportion 
 double Ki = 0.0 ;//constant of integrity, Kp*Ti(the time constant)
 double Kd = 0.4; //constant of differential, Kp*Td(the time constant) 
-const int Setpoint = 7;// the supposed distance between the robot car and the object
+const int Setpoint = 5;// the supposed distance between the robot car and the object
 double ki,kd;
 
  
@@ -83,7 +83,8 @@ void loop()
   //and here, 50 is a threshold
   if (distanceL-distanceR >25)
   {
-   //left();
+   spin_right();
+   //run();
    angle = angle + 2;
    //myservo.write(angle);
    if (angle > 110)
@@ -95,13 +96,12 @@ void loop()
     angle = 70;
   }
   myservo.write(angle);
-  run();
   //delay(10);
   }
   else if (distanceR-distanceL >25)
   {
-   //right();
-   run();
+   spin_left();
+   //run();
    angle = angle - 2;
    //myservo.write(angle);
    if (angle > 110)
@@ -113,7 +113,6 @@ void loop()
     angle = 70;
   }
   myservo.write(angle);
-  run();
   //delay(10);
   }
   //besides turning, the robot car is gonna go in straight line
@@ -154,23 +153,24 @@ void loop()
   }
   
   //Write the output as calculated by the PID function
-   if (distance <= 6)
+   if (distance < 6)
    {
     back();
    }
    //if distance is more than 400, which is kind of a threshold, it means the robot car may lost the target to follow,
    //as a result, we'd better to make it slower.
-   else
+   else if (distance > 7 && distance < 15)
    {
     //myservo.write(90);
     run();
    }
+   else stop();
    }
   delay(10); 
 }
 
 
-//the function to make the left altrasonic controller calculate the distance
+//the function to make the left ultrasonic controller calculate the distance
 void LeftSensor()
 {
   digitalWrite(TrigPinL, LOW);
@@ -182,7 +182,7 @@ void LeftSensor()
 }
 
 
-//the function to make the right altrasonic controller calculate the distance
+//the function to make the right ultrasonic controller calculate the distance
 void RightSensor()
 {
   digitalWrite(TrigPinR, LOW);
@@ -293,71 +293,3 @@ void back()
   digitalWrite(Right_motor_back, HIGH);  //enable right motor back
   analogWrite(Right_motor_en, 250);
 }
-/*void demoOne()
-{
-// this function will run the motors in both directions at a fixed speed
-// turn on motor A
-digitalWrite(in1, HIGH);
-digitalWrite(in2, LOW);
-// set speed to 200 out of possible range 0~255
-analogWrite(enA, 255);
-// turn on motor B
-digitalWrite(in3, HIGH);
-digitalWrite(in4, LOW);
-// set speed to 200 out of possible range 0~255
-analogWrite(enB, 255);
-delay(2000);
-*/
-/*// now change motor directions
-digitalWrite(in1, LOW);
-digitalWrite(in2, HIGH);
-digitalWrite(in3, LOW);
-digitalWrite(in4, HIGH);
-delay(2000);
-// now turn off motors
-digitalWrite(in1, LOW);
-digitalWrite(in2, LOW);
-digitalWrite(in3, LOW);
-digitalWrite(in4, LOW);
-}
-*/
-/*
-void demoTwo()
-{
-// this function will run the motors across the range of possible speeds
-// note that maximum speed is determined by the motor itself and the operating voltage
-// the PWM values sent by analogWrite() are fractions of the maximum speed possible
-// by your hardware
-
-// turn on motors forward
-digitalWrite(in1, HIGH);
-digitalWrite(in2, LOW);
-digitalWrite(in3, HIGH);
-digitalWrite(in4, LOW);
-// accelerate from zero to maximum speed
-for (int i = 0; i < 255; i++)
-{
-analogWrite(enA, i);
-analogWrite(enB, i);
-delay(20);
-}
-
-// turn on motors backward
-digitalWrite(in1, LOW);
-digitalWrite(in2, HIGH);
-digitalWrite(in3, LOW);
-digitalWrite(in4, HIGH);
-// decelerate from maximum speed to zero
-for (int i = 255; i >= 0; --i)
-{
-analogWrite(enA, i);
-analogWrite(enB, i);
-delay(20);
-}
-// now turn off motors
-digitalWrite(in1, LOW);
-digitalWrite(in2, LOW);
-digitalWrite(in3, LOW);
-digitalWrite(in4, LOW);
-}
-*/
