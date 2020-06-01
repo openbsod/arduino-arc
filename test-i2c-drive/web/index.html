@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+	<head>
+		<title>raspberry pi camera</title>
+		<style type="text/css">
+			#container {
+				/* center the content */
+				margin: 0 auto;	
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<img src="http://192.168.200.5:8081/" />
+			<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script><br />
+			<button onclick="servos.move('P', 1)">Left</button>
+			<button onclick="servos.move('P', 1)">Right</button>
+			<button onclick="servos.move('T', 2)">Up</button>
+			<button onclick="servos.move('T', 2)">Down</button>
+		</div>
+	</body>
+	<script>
+		var servos;
+		$( document ).ready(function() {
+			servos = moveServos();
+		});
+		function moveServos() {
+			// Store some settings, adjust to suit
+			var panPos = 0, 
+				tiltPos = 0, 
+				tiltMax = 100, 
+				tiltMin = 0, 
+				panMax = 100, 
+				panMin = 0;
+			return {
+				move:function(servo, adjustment) {
+					var value;
+					if(servo == 'P') {
+						if(!((panPos >= panMax && adjustment > 0) || (panPos <= panMin && adjustment < 0))) {
+							// Still within allowed range, "schedule" the movement
+							panPos += adjustment;
+						}
+						// value = panPos + 'P'; hardcode
+                                                value = 1;
+					}
+					else if(servo == 'T') {
+						if(!((tiltPos >= tiltMax && adjustment > 0) || (tiltPos <= tiltMin && adjustment < 0))) {
+							// Still within allowed range, "schedule" the movement
+							tiltPos += adjustment;
+						}
+						// value = tiltPos + 'T'; hardcode
+                                                value = 2;
+					}
+					// Use AJAX to actually move the servos
+					$.get('http://192.168.200.5/servos.rpy?value=' + value);
+				},
+			}
+		}
+	</script>
+</html>
